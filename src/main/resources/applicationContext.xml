@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+    <context:property-placeholder file-encoding="UTF-8" location="classpath*:db.properties" ignore-unresolvable="true"/>
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    <!--    <property name="loginTimeout" value="1000"/>
+        <property name="logWriter" value="true"/>
+        <property name="catalog" value="true"/>
+        <property name="schema" value="parent"/>-->
+    </bean>
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean id="dao" class="net.hualisheng.shiro.dao.ShiroDao">
+        <property name="jdbcTemplate" ref="jdbcTemplate"/>
+    </bean>
+    <bean id="service" class="net.hualisheng.shiro.service.ShiroService">
+        <property name="shiroDao" ref="dao"/>
+    </bean>
+    <bean id="realm" class="net.hualisheng.shiro.realm.LoginRealm">
+        <property name="service" ref="service"/>
+    </bean>
+    <bean id="webSecurityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+       <property name="realm" ref="realm"/>
+    </bean>
+    <bean class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="webSecurityManager"/>
+        <property name="loginUrl" value="/goLogin.html"/>
+        <property name="successUrl" value="/index.html"/>
+        <property name="unauthorizedUrl" value="/error.jsp"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /gologin.html = anon
+                /login.html = anon
+                /doadd.html = authc, perms[perm1,perm2]
+                /doget.html = authc, perms[admin]
+                /doupdate.html = authc, perms[perm1]
+                /dodel.html = authc, perms[perm2]
+            </value>
+        </property>
+    </bean>
+</beans>
